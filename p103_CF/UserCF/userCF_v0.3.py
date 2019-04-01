@@ -1,56 +1,30 @@
-#coding=utf-8
 import math
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from keras.utils import to_categorical
+from sklearn.preprocessing import OneHotEncoder
+import operator
 
-#定义数据路径，使用pandas导入数据
-pd.set_option('display.max_rows', 500)
-pd.set_option('display.max_columns', 500)
-pd.set_option('display.width', 1000)
+print("Data Import Starting...")
 
 moviesPath = "/Users/Keson/Desktop/test_data/movies.csv"
 ratingsPath = "/Users/Keson/Desktop/test_data/ratings.csv"
+userinfosPath = "/Users/Keson/Desktop/test_data/user_info.csv"
 moviesDF = pd.read_csv(moviesPath, index_col = None)
-ratingsDF = pd.read_csv(ratingsPath, index_col= None)
+ratingsDF = pd.read_csv(ratingsPath, index_col = None)
+userinfoDF = pd.read_csv(userinfosPath, index_col = None)
 
-#ratingsDF:
-#userId	movieId	rating	timestamp
-#  1	   1	   4	964982703
+print("Import data finished.")
 
-#moviesDF:
-#          movieId         title                     genres
-#0            1       Toy Story (1995)  Adventure|Animation|Children|Comedy|Fantasy
-
-
-#按照9：1的比例将数据拆分为训练集和测试集
-trainRatingsDF, testRatingsDF = train_test_split(ratingsDF, test_size=0.1)
-print("total_movie_count:" + str(len(set(ratingsDF['movieId'].values.tolist()))))
-print("total_user_count:" + str(len(set(ratingsDF['userId'].values.tolist()))))
-print("train_movie_count:" + str(len(set(trainRatingsDF['movieId'].values.tolist()))))
-print("test_movie_count:" + str(len(set(testRatingsDF['movieId'].values.tolist()))))
-print("train_user_count:" + str(len(set(trainRatingsDF['userId'].values.tolist()))))
-print("test_user_count:" + str(len(set(testRatingsDF['userId'].values.tolist()))))
-
-
-
-
-
-#使用pivot_table得到用户-电影的评分矩阵
-trainRatingsPivotDF = pd.pivot_table(trainRatingsDF[['userId', 'movieId', 'rating']], columns=['movieId'],
-                                 index=['userId'], values='rating', fill_value=0)
-
-# movieID 1 2 3 ...
-# userID 1
-#        2
-#value = 用户对电影的rating
-
-#得到电影id、用户id与其索引的映射关系
-# enumerate返回穷举序列号与值
+trainRatingsPivotDF = pd.pivot_table(ratingsDF[['userId', 'movieId', 'rating']], columns=['movieId'],
+                                            index=['userId'], values='rating', fill_value=0)
 moviesMap = dict(enumerate(list(trainRatingsPivotDF.columns)))
 usersMap = dict(enumerate(list(trainRatingsPivotDF.index)))
 ratingValues = trainRatingsPivotDF.values.tolist()
 
+
+print(ratingValues)
 #moviesMap : {0:1,1:2,3:3...}
 #usersMap: {0:1,1:2,3:3...}
 #ratingValues: 矩阵变成list 每一行变成list的一个值!   用户对每一个电影打的分，没有就是0.0 [0.0, 0.0, 0.0, 1.5...]
